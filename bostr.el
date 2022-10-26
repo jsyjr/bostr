@@ -1,4 +1,4 @@
-;;; bostr.el --- Backup On Save of a file To RCS
+;;; bostr.el --- Backup On Save To RCS
 
 ;; Copyright (C) 2004  Free Software Foundation, Inc.
 
@@ -23,29 +23,19 @@
 
 ;;; Commentary:
 
-;; Ever wish to go back to an older saved version of a file?  Then
-;; this package is for you.  This package copies every file you save
-;; in Emacs to a backup directory tree (which mirrors the tree
-;; structure of the filesystem), as an RCS revision file.  Never lose
-;; old saved versions again.
-
+;; Ever wish to view an older saved version of a file?  Then this
+;; package may be for you.  Every time you save a file this package:
+;;
+;; * Make a readonly mirror of that saved file to the mirror area
+;; * Ensure presence of a sibling RCS directory
+;; * Record this newest file version as the latest RCS revision
+;;
 ;; To activate globally, place this file in your `load-path', and add
 ;; the following lines to your ~/.emacs file:
 ;;
 ;; (require 'bostr)
 ;; (add-hook 'after-save-hook 'bostr)
-
-;; To activate only for individual files, add the require line as
-;; above to your ~/.emacs, and place a local variables entry at the
-;; end of your file containing the statement:
 ;;
-;; eval: (add-hook (make-local-variable 'after-save-hook) 'bostr)
-;;
-;; NOTE:  I would give a full example of how to do this here, but it
-;; would then try to activate it for this file since it is a short
-;; file and the docs would then be within the "end of the file" local
-;; variables region.  :)
-
 ;; To filter out which files it backs up, use a custom function for
 ;; `bostr-filter-function'.  For example, to filter out the saving of
 ;; gnus .newsrc.eld files, do:
@@ -61,20 +51,22 @@
 
 (defgroup bostr nil
   "Backup On Save To RCS."
+  :group 'backup
   :version "28.0")
 
 (defcustom bostr-mirror-location "~/.backups-rcs"
-  "Directory for mirror tree of RCS directories."
-  :group 'bostr)
+  "Directory for mirror tree of RCS directories (no trailing '/')."
+  :group 'bostr
+  :type 'directory)
 
 (defcustom bostr-remote-files nil
-  "Whether to backup remote files at each save.
-
-Defaults to nil."
+  "Whether to backup remote files at each save (off by default)."
+  :type 'boolean
   :group 'bostr)
 
 (defcustom bostr-filter-function #'identity
   "Function which should return non-nil if the file should be backed up."
+  :type 'function
   :group 'bostr)
 
 (defcustom bostr-size-limit 50000
@@ -82,41 +74,51 @@ Defaults to nil."
 If a file is greater than this size, don't make a backup of it.
 Setting this variable to nil disables backup suppressions based
 on size."
+  :type 'natnum
   :group 'bostr)
 
 (defcustom bostr-rcs "/usr/bin/rcs"
   "Path to the rcs executable."
+  :type '(file :must-match t)
   :group 'bostr)
 
 (defcustom bostr-ci "/usr/bin/ci"
   "Path to the ci executable."
+  :type '(file :must-match t)
   :group 'bostr)
 
+(defconst bostr-witnesses-regex
+  "/\\(SCCS\\|RCS\\|CVS\\|MCVS\\|[.]src\\|[.]svn\\|[.]git\\|[.]hg\\|[.]bzr\\|_MTN\\|_darcs\\|[{]arch[}]\\)/"
+  "Writes to any point below one of these witnesses should be ignored.
+
+FIXME: Duplicated from vc-directory-exclusion-list.")
 
 ;;;###autoload
 (defun bostr ()
+  "Mirror buffer's file and add a new RCS revision"
+  (setq vc-consult-headers nil)
   (let ((bfn (buffer-file-name)))
-    (when (and (or bostr-remote-files
+    (when (and (not (string-match bostr-witnesses-regex bfn))
+               (or bostr-remote-files
 		   (not (file-remote-p bfn)))
 	       (funcall bostr-filter-function bfn)
 	       (or (not bostr-size-limit)
 		   (<= (buffer-size) bostr-size-limit)))
-      (let ((backup-path (bostr-compute-location bfn))
-            (log (get-buffer-create "*Bostr-log*")))
-        (copy-file bfn backup-path t t t)
-        (call-process bostr-ci nil log nil "-f" "-m''" "-t-''" backup-path)
-        (call-process bostr-rcs nil log nil "-U" backup-path)))))
-
-(defun bostr-compute-location (filename)
-  (let* ((containing-dir (file-name-directory filename))
-	 (basename (file-name-nondirectory filename))
-	 (backup-container
-	  (format "%s%s"
-		  (expand-file-name bostr-mirror-location)
-		  containing-dir)))
-    (when (not (file-exists-p backup-container))
-      (make-directory (concat backup-container "/RCS") t))
-    (format "%s%s" backup-container basename)))
+      (let* ((dir (file-name-directory bfn))
+	     (file (file-name-nondirectory bfn))
+	     (mirror-dir (concat (expand-file-name bostr-mirror-location) dir))
+             (mirror-file (concat mirror-dir file))
+             (rcs-dir (concat mirror-dir "RCS/"))
+             (rcs-file (concat rcs-dir file ",v"))
+             (log (get-buffer-create "*Bostr-log*")))
+        (when (not (file-exists-p rcs-dir))
+          (make-directory rcs-dir t))
+        (when (file-exists-p mirror-file)
+          (delete-file mirror-file))
+        (copy-file bfn mirror-file t t t)
+        (call-process bostr-ci nil log nil "-l" "-m''" "-t-''" mirror-file)
+        (set-file-modes mirror-file #o444)))))
 
 (provide 'bostr)
+
 ;;; bostr.el ends here

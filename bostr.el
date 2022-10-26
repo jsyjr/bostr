@@ -3,7 +3,7 @@
 ;; Copyright (C) 2004  Free Software Foundation, Inc.
 
 ;; Author: Benjamin Rutt <brutt@bloomington.in.us>
-;; Maintainer: Conor Nash <conor@nashcobusinessservicesllc.com>
+;; Maintainer: John S. Yates, Jr. <john@yates-sheets.org>
 ;; Version: 1.4
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -23,12 +23,22 @@
 
 ;;; Commentary:
 
-;; Ever wish to view an older saved version of a file?  Then this
-;; package may be for you.  Every time you save a file this package:
+;; Derived from and then heavily modified:
+;;   https://www.emacswiki.org/emacs/backup-each-save.el
 ;;
-;; * Make a readonly mirror of that saved file to the mirror area
-;; * Ensure presence of a sibling RCS directory
-;; * Record this newest file version as the latest RCS revision
+;; Modern version control system, such as git, are wonderful.  But they
+;; have draw backs when dealing with lightweight saves:
+;;
+;; * Too invasive: new revisions created only by explicitly action
+;; * Too coarse: a revision captures an entire "project"
+;; * Requires setup: what about files that have no project?
+;; * Files listed in .gitignore (or equivalent) may still get edited
+;;
+;; Enter bostr.  EVERY time you save a file bostr:
+;;
+;; * Makes a readonly mirror of that saved file in the mirror area
+;; * Ensures presence of a sibling RCS directory
+;; * Records this newest file version as the latest RCS revision
 ;;
 ;; To activate globally, place this file in your `load-path', and add
 ;; the following lines to your ~/.emacs file:

@@ -1,11 +1,11 @@
 ;;; bostr.el --- Backup On Save To RCS
 
-;; Copyright (C) 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022  Free Software Foundation, Inc.
 
 ;; Author: Benjamin Rutt <brutt@bloomington.in.us>
 ;; Maintainer: Conor Nash <conor@nashcobusinessservicesllc.com>
 ;; Maintainer: John S. Yates, Jr. <john@yates-sheets.org>
-;; Version: 1.4
+;; Version: 0.5
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

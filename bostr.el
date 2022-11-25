@@ -35,17 +35,19 @@
 ;; * Requires setup: what about files that have no project?
 ;; * Files listed in .gitignore (or equivalent) may still get edited
 ;;
-;; Enter bostr.  EVERY time you save a file bostr:
+;; Enter bostr...  On FIRST change and EVERY subsequent save bostr:
 ;;
+;; * Qualifies the buffer's path
+;; * Ensures existence of a mirror directory and its RCS sub-directory
 ;; * Makes a readonly mirror of that saved file in the mirror area
-;; * Ensures presence of a sibling RCS directory
 ;; * Records this newest file version as the latest RCS revision
 ;;
 ;; To activate globally, place this file in your `load-path', and add
 ;; the following lines to your ~/.emacs file:
 ;;
 ;; (require 'bostr)
-;; (add-hook 'after-save-hook 'bostr)
+;; (add-hook 'first-change-hook  #'bostr)
+;; (add-hook 'after-save-hook #'bostr)
 ;;
 ;; To filter out which files it backs up, use a custom function for
 ;; `bostr-filter-function'.  For example, to filter out the saving of

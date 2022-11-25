@@ -83,10 +83,8 @@
   :group 'bostr)
 
 (defcustom bostr-size-limit 50000
-  "Maximum size of a file (in bytes) that should be copied at each savepoint.
-If a file is greater than this size, don't make a backup of it.
-Setting this variable to nil disables backup suppressions based
-on size."
+  "Maximum size (in byte) beyond which a file will not get backed-up.
+Setting this variable to nil disables the size check."
   :type 'natnum
   :group 'bostr)
 

@@ -67,7 +67,7 @@
   :group 'backup
   :version "28.0")
 
-(defcustom bostr-mirror-location "~/.backups-rcs"
+(defcustom bostr-mirror-tree "~/.backups-rcs"
   "Directory for mirror tree of RCS directories (no trailing '/')."
   :group 'bostr
   :type 'directory)

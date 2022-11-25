@@ -88,11 +88,6 @@ Setting this variable to nil disables the size check."
   :type 'natnum
   :group 'bostr)
 
-(defcustom bostr-rcs "/usr/bin/rcs"
-  "Path to the rcs executable."
-  :type '(file :must-match t)
-  :group 'bostr)
-
 (defcustom bostr-ci "/usr/bin/ci"
   "Path to the ci executable."
   :type '(file :must-match t)

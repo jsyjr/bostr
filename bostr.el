@@ -107,23 +107,25 @@ FIXME: Duplicated from vc-directory-exclusion-list.")
     (when (and (not (string-match bostr-witnesses-regex bfn))
                (or bostr-remote-files
 		   (not (file-remote-p bfn)))
-	       (funcall bostr-filter-function bfn)
 	       (or (not bostr-size-limit)
-		   (<= (buffer-size) bostr-size-limit)))
-      (let* ((dir (file-name-directory bfn))
-	     (file (file-name-nondirectory bfn))
-	     (mirror-dir (concat (expand-file-name bostr-mirror-location) dir))
-             (mirror-file (concat mirror-dir file))
-             (rcs-dir (concat mirror-dir "RCS/"))
-             (rcs-file (concat rcs-dir file ",v"))
-             (log (get-buffer-create "*Bostr-log*")))
-        (when (not (file-exists-p rcs-dir))
-          (make-directory rcs-dir t))
-        (when (file-exists-p mirror-file)
-          (delete-file mirror-file))
-        (copy-file bfn mirror-file t t t)
-        (call-process bostr-ci nil log nil "-l" "-m''" "-t-''" mirror-file)
+		   (<= (buffer-size) bostr-size-limit))
+               (funcall bostr-filter-function bfn))
+      (let* ((mirror-file (bostr-mirror-file bfn)))
+        (call-process bostr-ci
+                      nil (get-buffer-create "*Bostr-log*") nil
+                      "-l" "-m''" "-t-''" bfn mirror-file)
         (set-file-modes mirror-file #o444)))))
+
+(defun bostr-mirror-file (file-path)
+  "Return a path to the RCS file where backups of FILE_PATH are stored."
+  (let* ((dir (file-name-directory file-path))
+	 (file (file-name-nondirectory file-path))
+	 (mirror-dir (concat (expand-file-name bostr-mirror-tree) "/RCS" dir))
+         (mirror-file (concat mirror-dir file)))
+    (unless (file-exists-p mirror-dir)
+      (make-directory mirror-dir t))
+    mirror-file))
+
 
 (provide 'bostr)
 
